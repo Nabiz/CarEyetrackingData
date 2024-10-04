@@ -27,19 +27,19 @@ def get_parsed_car_status_data(annotation_data):
 
 
 def get_parsed_event_data(annotation_data):
-    car_statuses = []
+    events = []
     keys = ["timestamp", "info"]
     for annotation in annotation_data[0]:
         if annotation["label"] == "event":
-            car_statuses.append({k: v for (k, v) in annotation.items() if k in keys})
-    return car_statuses
+            events.append({k: v for (k, v) in annotation.items() if k in keys})
+    return events
 
 
 def get_parsed_hit_object_data(annotation_data):
-    car_statuses = []
-    keys = ["timestamp", "hit_object"]
+    hit_objects = []
+    keys = ["timestamp", "hit_object", "distance"]
     for annotation in annotation_data[0]:
         if annotation["label"] == "hit_object":
-            car_statuses.append({k: v for (k, v) in annotation.items() if k in keys})
-    return car_statuses
+            hit_objects.append({k: v for (k, v) in annotation.items() if k in keys})
+    return hit_objects
 

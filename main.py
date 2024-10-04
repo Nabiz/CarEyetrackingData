@@ -1,28 +1,54 @@
-from pupil.pupil_src.shared_modules import file_methods as fm
+import data_loader as dl
+import utils
+import matplotlib.pyplot as plt
+
+"""Load Data from Pupil files"""
+fix_data, ann_data = dl.load_data("data\\Dograjnocka\\2024_06_28\\004")
+fixations = dl.get_parsed_fixation_data(fix_data)
+statuses = dl.get_parsed_car_status_data(ann_data)
+events = dl.get_parsed_event_data(ann_data)
+hit_objects = dl.get_parsed_hit_object_data(ann_data)
+
+"""Setup time and align fixations to objects"""
+utils.reset_time(fixations, statuses, events, hit_objects)
+utils.add_hit_objects_to_fixations(fixations, hit_objects)
 
 
-def main(fixation_id):
-    for k, v in fixation_data[0][fixation_id].items():
-        if k == "timestamp":
-            fixation_timestamp = v
-        elif k == "duration":
-            fixation_duration = v
+# """Print all fixations with objects"""
+# for fix in fixations:
+#     if fix["hit_object"] != "None":
+#         print(fix["id"])
+#         print(fix["timestamp"])
+#         print(fix["hit_object"])
 
-    aoi = None
-    for i in range(len(annotation_data[0])):
-        for k, v in annotation_data[0][i].items():
-            if fixation_timestamp + fixation_duration/1000 >= annotation_data[0][i]["timestamp"] >= fixation_timestamp:
-                if k == "label":
-                    aoi = v
+plt.plot([status["timestamp"] for status in statuses], [status["speed"] for status in statuses])
+plt.plot([status["timestamp"] for status in statuses], [100*status["break_input"] for status in statuses], color="red")
 
-    return fixation_timestamp, fixation_duration, aoi
+jenny_timestamps = []
+jenny_distances = []
 
+for fix in fixations:
+    if fix["hit_object"] == "Jenny":
+        plt.axvline(fix["timestamp"], color='g')
+        jenny_timestamps.append(fix["timestamp"])
+        jenny_distances.append(fix["distance"])
 
-if __name__ == '__main__':
-    annotation_data = fm.load_pldata_file("003", "annotation")
-    fixation_data = fm.load_pldata_file("003/offline_data", "fixations")
-    print(len(fixation_data[0]))
-    for i in range(0, len(fixation_data[0])):
-        result = main(i)
-        print(result)
+spawn_pedestrian_timestamps = None
+for event in events:
+    print(event)
+    if event["info"] == "Spawn Jenny":
+        plt.axvline(event["timestamp"], color="orange")
+        spawn_pedestrian_timestamps = event["timestamp"]
 
+break_timestamp = None
+for status in statuses:
+    if spawn_pedestrian_timestamps <= status["timestamp"] <= spawn_pedestrian_timestamps + 10.0:
+        if status["break_input"] > 0.05:
+            break_timestamp = status["timestamp"]
+            break
+
+print("Od spawnu do Jenny", jenny_timestamps[0]-spawn_pedestrian_timestamps, jenny_distances[0], "metry")
+print("Od spwanu do hamulca", break_timestamp-spawn_pedestrian_timestamps)
+print("Od jenny do hamulca", break_timestamp-jenny_timestamps[0])
+
+plt.show()
