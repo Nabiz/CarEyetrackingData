@@ -31,3 +31,9 @@ def add_hit_objects_to_fixations(fixations, hit_objects):
                     fix["distance"] = hit_object["distance"]
                     break
 
+
+class AllData:
+    def __init__(self, statuses, fixations, events):
+        self.statuses = statuses
+        self.fixations = fixations
+        self.events = events
